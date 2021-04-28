@@ -60,7 +60,6 @@ cliente_limitecredito = []
 # Carrinho
 carrinho_total = []
 carrinho_itens = []
-carrinho_itens_quantia = []
 
 # Produtos
 produtos_nome = ['Pasta de dente', 'Arroz 5 kg', 'Feijão 1 kg', 'Açucar 1 kg', 'Refrigerante 2L', ]
@@ -82,6 +81,7 @@ def cadastro():
             cliente_email.append(input("Digite o email: "))
             cliente_limitecredito.append(1000.00)
             carrinho_itens.append([])
+            carrinho_total.append(0)
             return len(cliente_cpf)-1
         else:
             for index in range(len(cliente_cpf)):
@@ -103,8 +103,7 @@ def consulta_cliente():
             if validacpf(cpf):
                 if cpf in cliente_cpf:
                     index=cliente_cpf.index(cpf)
-                    print(f"Nome: {cliente_username[index]}\nEmail: {cliente_email[index]}\nLimite disponível: R${cliente_limitecredito[index]}")
-                    #continuar=input("\nPressione ENTER para continuar.\n")
+                    print(f"Nome: {cliente_username[index]}\nEmail: {cliente_email[index]}")
                     voltamenu()
                     return index
             else:
@@ -140,27 +139,41 @@ def login(cpf, senha):
 def comprar(cpf):
     index=cliente_cpf.index(cpf)
     global carrinho_itens
+    global carrinho_total
     print()
     for n in range(len(produtos_nome)):
         item=produtos_nome[n]
         preco=produtos_preco[n]
         print(f"({n}) {item} -- R$ {preco}0")
     print("Qual item você deseja adicionar ao carrinho?")
-    adicionait=int(input())
+    numitem=int(input())
     print("Quantidade para adicionar ao carrinho?")
-    adicionaqt=int(input())
+    quantia=int(input())
+    somacarrinho=produtos_preco[numitem]*quantia
+    print(carrinho_total[index])
+    if carrinho_total[index]+somacarrinho > cliente_limitecredito[index]:
+        print("Não foi possível adicionar este item ao seu carrinho.\nLimite de R$ 1000,00 seria ultrapassado.")
+        print("Deseja ver seu carrinho? (s/n)")
+        vercarrinho = input()
+        if vercarrinho == "s":
+            mostrar_carrinho()
+        menu()
+    else:
+        #FIXAR TROCA NUMERO DE ITENS SE JA ESTA DENTRO DA LISTA DO USUARIO
+
     #if adicionait in carrinho_itens[index]:
     #    indexit = carrinho_itens[index].index(adicionait)
     #    add = carrinho_itens[indexit]+adicionait
     #    carrinho_itens[index].clear(adicionait)
     #    carrinho_itens[index].append((adicionait, adicionaqt))
     #else:
-    carrinho_itens[index].append((adicionait, adicionaqt))
-    print("Deseja adicionar mais algum item ao carrinho?(s/n):")
-    maisitem=input()
-    if maisitem == "s":
-        comprar(cpf)
-    menu()
+        carrinho_total[index]+=somacarrinho
+        carrinho_itens[index].append((numitem, quantia))
+        print("Deseja adicionar mais algum item ao carrinho?(s/n):")
+        maisitem=input()
+        if maisitem == "s":
+            comprar(cpf)
+        menu()
 
 # Prateleira de produtos
 def mostra_produtos():
@@ -230,8 +243,18 @@ def menu():
             print(cliente_limitecredito)
             print(cliente_senha)
             print(carrinho_itens)
+            print(carrinho_total)
 
         else:
             print("Opção inválida! Tente novamente.")
 
 menu()
+
+
+
+
+
+### NA COMPRA DE PRODUTOS, SOMAR O VALOR TOTAL E VERIFICAR SE PODE ADD OU não
+
+### TALVEZ CRIAR LISTA DE CARRINHO SEPARADO POR Cliente: carrinho_itens_[index] = 
+
