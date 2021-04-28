@@ -1,7 +1,22 @@
-# Limpa tela
-import os
-def cls():
-    os.system('cls' if os.name=='nt' else 'clear') #"cls" para windows e "clear" p/ linux.
+# buscar item na lista
+def encontrar(elemento):
+    pos_i = 0 # variável provisória de índice
+    pos_j = 0 # idem
+
+    for i in range (len(lista)): # procurar em todas as listas internas
+        for j in range (i): # procurar em todos os elementos nessa lista
+            if elemento in lista[i][j]: # se encontrarmos elemento ('ana')
+                pos_i = i # guardamos o índice i
+                pos_j = j # e o índice j
+                break # saímos do loop interno
+            break # e do externo
+    return (pos_i, pos_j) # e retornamos os índices
+
+
+# retorna ao menu após pausa
+def voltamenu():
+    continuar=input("\nPressione ENTER para continuar.\n")
+    menu()
 
 # validar o CPF:
 # http://www.dbins.com.br/dica/como-funciona-a-logica-da-validacao-do-cpf
@@ -10,11 +25,11 @@ def validacpf(cpfstr):
         return False
     cpf=[]
     verificador=[]
-    posit=[9, 10]
-    digit=[-2, -1]
+    posit=[9, 10] # multiplica digitos do CPF
+    digit=[-2, -1] # digitos verificadores n° 10 e 11
     for i in cpfstr:
         cpf.append(int(i))
-    for n in range(2):
+    for n in range(2): # duas vericicações
         mult=posit[n]+1
         soma=0
         for i in range(posit[n]): # soma num acumulador a multiplicação das posições [0] até [n] do CPF
@@ -35,8 +50,6 @@ def validacpf(cpfstr):
         return True
     return False
 
-
-
 # Cliente
 cliente_username = []
 cliente_cpf = []
@@ -46,7 +59,9 @@ cliente_limitecredito = []
 
 # Carrinho
 carrinho_total = []
-carrinho_itens = [[0,0,0,0]] # atualizar com o número de produtos, ou seja comprou 0 pasta de dentes...
+carrinho_itens = []
+carrinho_itens_quantia = []
+ # atualizar com o número de produtos, ou seja comprou 0 pasta de dentes...
 #####
 #carrinho_itens[0][1]=2 cliente 0  comprou 2 arroz 5 kilos
 #carrinho_itens[0][3]=1 cliente 0  comprou 1 acuçar
@@ -55,10 +70,11 @@ carrinho_itens = [[0,0,0,0]] # atualizar com o número de produtos, ou seja comp
 
 #carrinho_itens[X][Y]=W   cliente X  comprou W de Y
 
-
 # Produtos - pode adicionar quantos produtos desejar
-produtos_nome = ['Pasta de dente', 'Arroz 5 kg', 'Feijão 1 kg', 'Açucar 1 kg']
-produtos_preco = [5.00, 10.00, 4.00, 2.00]
+produtos_nome = ['Pasta de dente', 'Arroz 5 kg', 'Feijão 1 kg', 'Açucar 1 kg', 'Refrigerante 2L', ]
+produtos_preco = [5.00, 20.00, 5.00, 4.00, 6.00, ]
+
+
 #cadastro de novos clientes
 #verificar se o cliente já existe a partir do cpf
 def cadastro():
@@ -73,13 +89,14 @@ def cadastro():
             cliente_senha.append(input("Digite a senha: "))
             cliente_email.append(input("Digite o email: "))
             cliente_limitecredito.append(1000.00)
+            carrinho_itens.append([])
             return len(cliente_cpf)-1
         else:
             for index in range(len(cliente_cpf)):
                 if cliente_cpf[index]==cpf:
                     print("Cliente já cadastrado com o nome de: ", cliente_username[index])
-                    return index
-            index = cliente_cpf.index(cpf)
+                    index = cliente_cpf.index(cpf)
+            return index
     else:
         print("CPF Inválido.")
         cadastro()
@@ -87,22 +104,67 @@ def cadastro():
 
 #mostra um cliente a partir do cpf
 def consulta_cliente():
-    for i in cliente_username:
-        print("Qual o cpf que deseja consultar? ")
-        cpf=input("Digite o cpf: ")
+    if cliente_username:
+        for i in cliente_username:
+            #print("Qual o cpf que deseja consultar? ")
+            cpf=input("Digite o CPF que deseja consultar: ")
+            if validacpf(cpf):
+                if cpf in cliente_cpf:
+                    index=cliente_cpf.index(cpf)
+                    print(f"Nome: {cliente_username[index]}\nEmail: {cliente_email[index]}\nLimite disponível: R${cliente_limitecredito[index]}")
+                    #continuar=input("\nPressione ENTER para continuar.\n")
+                    voltamenu()
+            else:
+                print("CPF inválido.\n")
+    else:
+        print("\nERRO: Nenhum cliente cadastrado.")
+        #continuar=input("\nPressione ENTER para continuar.\n")
+        voltamenu()
+
+## MENU DE COMPRAS
+def comprar(cpf, senha):
+    if validacpf(cpf):
         if cpf in cliente_cpf:
             index=cliente_cpf.index(cpf)
-            print(cliente_username[index])
+            if senha==cliente_senha[index]:
+                global carrinho_itens
+                print()
+                for n in range(len(produtos_nome)):
+                    item=produtos_nome[n]
+                    preco=produtos_preco[n]
+                    print(f"({n+1}) {item} -- R$ {preco}0")
+                print("Qual item você deseja adicionar ao carrinho?")
+                adicionait=int(input())
+                print("Quantidade para adicionar ao carrinho?")
+                adicionaqt=int(input())
+                #if adicionait in carrinho_itens[index]:
+                #    indexit = carrinho_itens[index].index(adicionait)
+                #    add = carrinho_itens[indexit]+adicionait
+                #    carrinho_itens[index].clear(adicionait)
+                #    carrinho_itens[index].append((adicionait, adicionaqt))
+                #else:
+                carrinho_itens[index].append((adicionait, adicionaqt))
+                voltamenu()
+            else:
+                print("\nSenha incorreta.")
+                voltamenu()
 
-##
-def comprar(cpf, senha):
-  print("implementar com o cpf e a senha", cpf, " ", senha)
+        else:
+            print("Cliente não cadastrado. Gostaria de cadastrar novo cliente?")
+            print("Digite 1 para menu cadastro ou * para voltar ao menu inicial.")
+            opt=input()
+            if opt=='1':
+                cadastro()
+            else:
+                menu()
+    else:
+        print("CPF Inválido.")
+        voltamenu()
 
-  
 
-index=None
+#index=None
 def menu():
-    cls()
+    print()
     opcao = "-1"
 
     while opcao != "0":
@@ -122,12 +184,15 @@ def menu():
 
         elif opcao == "2":
             print("Opção selecionada: Comprar") 
-            cpf=input("Digite  o cpf: ")  
+            cpf=input("Digite  o CPF: ")  
             senha= input("Digite  a senha: ")  
             comprar(cpf,senha)
 
         elif opcao == "3":
             print("Opção selecionada: Mostrar carrinho")
+            print("Mostrar carrinho de qual CPF? ")
+            cpf=input("Digite  o CPF: ")
+            print(carrinho_itens)
 
         elif opcao == "4":
             print("Opção selecionada: Pagar conta")
@@ -142,7 +207,14 @@ def menu():
 
         elif opcao == "0":
             print("Saindo...")
-            
+
+        elif opcao == "42":
+            print(cliente_cpf)
+            print(cliente_username)
+            print(cliente_email)
+            print(cliente_limitecredito)
+            print(cliente_senha)
+
         else:
             print("Opção inválida! Tente novamente.")
 
