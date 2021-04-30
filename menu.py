@@ -1,9 +1,26 @@
-# retorna ao menu após pausa
+## Inicia variáveis
+## Cliente
+cliente_username = []
+cliente_cpf = []
+cliente_senha = []
+cliente_email = []
+cliente_limitecredito = []
+
+## Carrinho
+carrinho_total = []
+carrinho_itens = []
+
+## Produtos
+produtos_nome = ['Pasta de dente', 'Arroz 5kg', 'Feijão 1kg', 'Açucar 1 kg', 'Refrigerante 2L', 'xsda', 'asdasd', 'asdaasdsd', 'aosjpd', 'asdaseqwe2', 'poaisjhd']
+produtos_preco = [5.00, 20.00, 5.00, 4.00, 6.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00]
+
+
+## Retorna ao menu após pausa
 def voltamenu():
     continuar=input("\nPressione ENTER para continuar.\n")
     menu()
 
-# validar o CPF:
+## Validar o CPF:
 def validacpf(cpfstr):
     if len(cpfstr)!=11 or cpfstr in ('00000000000', '11111111111', '22222222222', '33333333333', '44444444444', '55555555555', '66666666666', '77777777777', '88888888888', '99999999999', '01234567890'):
         return False
@@ -34,25 +51,7 @@ def validacpf(cpfstr):
         return True
     return False
 
-# Inicia variáveis
-# Cliente
-cliente_username = []
-cliente_cpf = []
-cliente_senha = []
-cliente_email = []
-cliente_limitecredito = []
-
-# Carrinho
-carrinho_total = []
-carrinho_itens = []
-
-# Produtos
-produtos_nome = ['Pasta de dente', 'Arroz 5 kg', 'Feijão 1 kg', 'Açucar 1 kg', 'Refrigerante 2L', 'xsda', 'asdasd', 'asdaasdsd', 'aosjpd', 'asdaseqwe2', 'poaisjhd']
-produtos_preco = [5.00, 20.00, 5.00, 4.00, 6.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00]
-
-
-# Cadastro de novos clientes
-# Verifica se o cliente já existe a partir do cpf
+## Cadastra novos clientes e verifica se o cliente já existe a partir do cpf
 def cadastro():
     print("\n** CADASTRO CLIENTE **")
     global index
@@ -61,27 +60,42 @@ def cadastro():
         menu()
     if validacpf(cpf):
         if not cpf in cliente_cpf:
+            print()
             cliente_username.append(input("Digite o nome do usuário: "))
             cliente_cpf.append(cpf)
-            cliente_senha.append(input("Digite a senha: "))
+            while True:
+                print()
+                while True:
+                    try:
+                        criasenha  = input("Criar uma senha (6 caracteres): ")
+                        if len(criasenha) != 6:
+                            raise ValueError
+                        break
+                    except ValueError:
+                        print("Sua senha precisa ter 6 caracteres.")
+                conferesenha = input("Confirmar a senha: ")
+                if criasenha != conferesenha:
+                    print("Senhas não são iguais.")
+                else:
+                    break
+            cliente_senha.append(criasenha)
+            print()
             cliente_email.append(input("Digite o email: "))
             cliente_limitecredito.append(1000.00)
             carrinho_itens.append([0]*20)
             carrinho_total.append(0)
             index=cliente_cpf.index(cpf)
+            print("\nCadastro efetuado!")
             voltamenu()
         else:
-            for index in range(len(cliente_cpf)):
-                if cliente_cpf[index]==cpf:
-                    print("\nCliente já cadastrado com o nome de:", cliente_username[index])
-                    index=cliente_cpf.index(cpf)
-                    voltamenu()
+            index=cliente_cpf.index(cpf)
+            print("\nCliente já cadastrado com o nome de:", cliente_username[index])
+            voltamenu()
     else:
         print("CPF Inválido.")
         cadastro()
     
-
-# Mostra um cliente a partir do cpf
+## Mostra um cliente a partir do CPF
 def consulta_cliente():
     print("\n** CONSULTA CLIENTE **")
     global index
@@ -103,10 +117,10 @@ def consulta_cliente():
                 print("\nCPF inválido.")
                 voltamenu()
     else:
-        print("\nERRO: Nenhum cliente cadastrado.")
+        print("\nNenhum cliente cadastrado!")
         voltamenu()
 
-# Verifica se cadastro já existe e se senha confere
+## Verifica se cadastro já existe e se senha confere
 def login(cpf, senha):
     if validacpf(cpf):
         if cpf in cliente_cpf:
@@ -126,15 +140,19 @@ def login(cpf, senha):
         print("\nCPF Inválido.")
         voltamenu()
 
-## MENU DE COMPRAS
+## Menu compras para CPF
 def comprar(cpf):
     global index
     global carrinho_itens
     global carrinho_total
+    opcao = '2'
     index=cliente_cpf.index(cpf)
     print()
-    additem=input("Deseja adicionar itens ao carrinho?(s/n): ")
-    if additem!='s':
+    print("(c) Comprar itens\n(v) Ver o carrinho\n(s) Sair: ")
+    buyoption=input("Opção: ")
+    if buyoption == 'v':
+        mostrar_carrinho(opcao)
+    elif buyoption!='c':
         menu()
     while True:
         try:
@@ -142,11 +160,9 @@ def comprar(cpf):
             break
         except ValueError:
             print("Entrada inválida. Digite um número inteiro.")
-    #coditem=int(input("Código do item: "))
     if coditem > len(produtos_nome)-1:
         print("\nItem inexistente.")
         comprar(cpf)
-    #quantia=int(input("Quantidade: "))
     while True:
         try:
             quantia = int(input("Quantidade: "))
@@ -155,10 +171,7 @@ def comprar(cpf):
             print("Entrada inválida. Digite um número inteiro.")
     somavalor=produtos_preco[coditem]*quantia
     if carrinho_total[index]+somavalor > cliente_limitecredito[index]:
-        print(f"\nNão foi possível adicionar este item ao seu carrinho.\nVocê possui limite de R$ {cliente_limitecredito[index]}0.")
-        vercarrinho = input("Deseja ver seu carrinho?(s/n): ")
-        if vercarrinho == 's':
-            mostrar_carrinho()
+        print(f"\nNão foi possível adicionar este item ao seu carrinho.\nSeu limite é R$ {cliente_limitecredito[index]}0.")
         voltamenu()
     else:
         add=carrinho_itens[index][coditem]
@@ -170,7 +183,7 @@ def comprar(cpf):
 
 # Prateleira de produtos
 def mostra_produtos():
-    print("\n** LISTA DE PRODUTOS *")
+    print("\n** LISTA DE PRODUTOS **")
     print()
     for n in range(len(produtos_nome)):
         item=produtos_nome[n]
@@ -179,20 +192,12 @@ def mostra_produtos():
     voltamenu()
 
 # Carrinho de compras do cliente
-def mostrar_carrinho():
+def mostrar_carrinho(opcao):
     print("\n****** CARRINHO ******")
-    global index
-    if index==None:
-        cpf=input("Digite o CPF para ver o carrinho: ")
-        if validacpf(cpf):
-            if cpf in cliente_cpf:
-                index=cliente_cpf.index(cpf)
-            else:
-                print("Carrinho inexistente.")
-                voltamenu()
-        else:
-            print("CPF Inválido.")
-            voltamenu()
+    global cpf
+    if not cliente_cpf:
+        print("\nNenhum cliente cadastrado!")
+        voltamenu()
     print()
     print(f"Carrinho de {cliente_username[index]}:")
     for codigo in range(len(produtos_nome)):
@@ -200,11 +205,15 @@ def mostrar_carrinho():
             item=produtos_nome[codigo]
             qts_carrinho=carrinho_itens[index][codigo]
             print(f"{qts_carrinho} un. de {item}.")
-    print(f"Valor total: R$ {carrinho_total[index]:.2f}")
+    print(f"TOTAL: R$ {carrinho_total[index]:.2f}")
+    if opcao == '2':
+        ircomprar = input("\nPressione ENTER para voltar às compras.")
+        comprar(cpf)
     voltamenu()
 
 ## MENU DE OPÇÕES
 def menu():
+    global cpf
     print()
     opcao = "-1"
     while opcao != "0":
@@ -224,13 +233,17 @@ def menu():
 
         elif opcao == "2":
             print("\n** COMPRAR PRODUTOS **\n")
-            cpf=input("Digite o CPF: ")
-            senha= input("Digite a senha: ")
-            if login(cpf, senha):
-                comprar(cpf)
+            if cliente_cpf:
+                cpf=input("Digite o CPF: ")
+                senha= input("Digite a senha: ")
+                if login(cpf, senha):
+                    comprar(cpf)
+            else:
+                print("Nenhum cliente cadastrado!")
+                voltamenu()
 
         elif opcao == "3":
-            mostrar_carrinho()
+            mostrar_carrinho(opcao)
 
         elif opcao == "4":
             print("Opção selecionada: Pagar conta")
@@ -264,3 +277,4 @@ menu()
 
 
 ### FALTA MENU PAGAMENTO e Aperfeiçoamentos
+### ADD Acesso a lista de produtos e ao carrinho pelo menu Compra
