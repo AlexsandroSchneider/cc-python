@@ -54,7 +54,6 @@ def validacpf(cpfstr):
 ## Cadastra novos clientes e verifica se o cliente já existe a partir do cpf
 def cadastro():
     print("\n** CADASTRO CLIENTE **")
-    global index
     cpf=input("\nPressione ENTER para voltar ou\ndigite o CPF (somente números): ")
     if cpf=="":
         menu()
@@ -66,7 +65,7 @@ def cadastro():
                 nome = input("Digite o nome do usuário: ")
                 if len(nome) == 0:
                     print("ERRO: Digite pelo menos um caractere.")
-                elif not nome.isalpha():
+                elif not nome.replace(' ','').isalpha():
                     print("ERRO: Somente letras de a-z são permitidas.")
                 else:
                     break
@@ -98,7 +97,7 @@ def cadastro():
             print("\nCliente já cadastrado com o nome:", cliente_username[index])
             voltamenu()
     else:
-        print("CPF Inválido.")
+        volta = input("\nCPF Inválido.\n\nPressione ENTER para continuar.")
         cadastro()
 
 
@@ -161,29 +160,38 @@ def comprar(cpf):
     opcao = '2'
     index=cliente_cpf.index(cpf)
     print()
-    print("(c) Comprar itens\n(v) Ver o carrinho\n(x) Listar produtos\n(ENTER) Voltar")
+    print("(1) Comprar itens\n(2) Remover itens\n(3) Ver o carrinho\n(4) Listar produtos\n(5) Voltar")
     buyoption=input("Opção: ")
-    if buyoption == 'v':
-        mostrar_carrinho(cpf, opcao)
-    elif buyoption == 'x':
-        mostra_produtos(opcao)
-    elif buyoption != 'c':
+    if buyoption == '5':
         menu()
-    while True:
-        try:
-            coditem = int(input("Código do item: "))
-            break
-        except ValueError:
-            print("Entrada inválida. Digite um número inteiro.")
-    if coditem > len(produtos_nome)-1:
-        print("\nItem inexistente.")
+    elif buyoption == '4':
+        mostra_produtos(opcao)
+    elif buyoption == '3':
+        mostrar_carrinho(cpf, opcao)
+    elif buyoption == '2':
+        removeitens(cpf)
+    elif buyoption != '1':
+        volta = input("\nOpção inválida!\n\nPressione ENTER para continuar.")
         comprar(cpf)
     while True:
         try:
-            quantia = int(input("Quantidade: "))
+            coditem = int(input("\nCódigo do item: "))
+            if coditem > len(produtos_nome)-1 or coditem < 0:
+                print("Item inexistente.")
+                continue
             break
         except ValueError:
-            print("Entrada inválida. Digite um número inteiro.")
+            print("Entrada inválida. Digite o código do produto.")
+    print(f"{produtos_nome[coditem]} -- R$ {produtos_preco[coditem]:.2f}")
+    while True:
+        try:
+            quantia = int(input("\nQuantidade: "))
+            if quantia > 0:
+                break
+            volta= input("Nenhum item adicionado!\n\nPressione ENTER para continuar.")
+            comprar(cpf)
+        except ValueError:
+            print("Entrada inválida. Digite um número inteiro positivo.")
     somavalor=produtos_preco[coditem]*quantia
     if carrinho_total[index]+somavalor > cliente_limitecredito[index]:
         print(f"\nNão foi possível adicionar este item ao seu carrinho.\nSeu limite é R$ {cliente_limitecredito[index]}0.")
@@ -193,9 +201,51 @@ def comprar(cpf):
         carrinho_itens[index].pop(coditem)
         carrinho_total[index]+=somavalor
         carrinho_itens[index].insert(coditem, quantia+add)
-        print(f"\n{quantia} un. de {produtos_nome[coditem]} adicionado ao carrinho!")
+        volta = input(f"\n{quantia} un. de {produtos_nome[coditem]} adicionado ao carrinho!\n\nPressione ENTER para continuar.")
         comprar(cpf)
 
+
+# Remover itens do carrinho
+def removeitens(cpf):
+    global carrinho_itens
+    global carrinho_total
+    index=cliente_cpf.index(cpf)
+    print("\n** REMOVER ITENS **\n")
+    if carrinho_total[index] > 0:
+        for codigo in range(len(produtos_nome)):
+            if carrinho_itens[index][codigo]>0:
+                print(f"({codigo}) {produtos_nome[codigo]} -- {carrinho_itens[index][codigo]} un. ")
+        while True:
+            try:
+                coditem = int(input("\nCódigo do produto: "))
+                if carrinho_itens[index][coditem]<1:
+                    volta = input("\nProduto não está no carrinho.\nPressione ENTER para continuar.")
+                    comprar(cpf)
+                break
+            except ValueError:
+                print("Entrada inválida. Digite o código do produto.")
+        while True:
+            try:
+                quantia = int(input("\nQuantos deseja remover: "))
+                if quantia >= carrinho_itens[index][coditem]:
+                    volta = input("\nValor maior que a quantia no carrinho.\nPressione ENTER para continuar.")
+                    comprar(cpf)
+                if quantia <= 0:
+                    volta = input("\nNenhum item removido!\nPressione ENTER para continuar.")
+                    comprar(cpf)
+                break
+            except ValueError:
+                print("Entrada inválida. Digite um número inteiro positivo.")
+        n_no_carrinho=carrinho_itens[index][coditem]
+        carrinho_itens[index].pop(coditem)
+        carrinho_total[index]-=(produtos_preco[coditem]*quantia)
+        carrinho_itens[index].insert(coditem, n_no_carrinho-quantia)
+        volta = input(f"\n{quantia} un. de {produtos_nome[coditem]} removido do carrinho!\n\nPressione ENTER para voltar às compras.")
+        comprar(cpf)
+    else:
+        volta = input("Carrinho Vazio!\n\nPressinone ENTER para voltar às compras.")
+    comprar(cpf)
+                
 
 # Prateleira de produtos
 def mostra_produtos(opcao):
@@ -215,8 +265,7 @@ def mostra_produtos(opcao):
 # Carrinho de compras do cliente
 def mostrar_carrinho(cpf, opcao):
     index=cliente_cpf.index(cpf)
-    print("\n****** CARRINHO ******")
-    print()
+    print("\n****** CARRINHO ******\n")
     print(f"Carrinho de {cliente_username[index]}:")
     for codigo in range(len(produtos_nome)):
         if carrinho_itens[index][codigo]>0:
@@ -230,17 +279,15 @@ def mostrar_carrinho(cpf, opcao):
 
 ## pagamento para liberar saldo
 def pagamento(cpf):
-    global carrinho_itens
     global carrinho_total
     index=cliente_cpf.index(cpf)
     if carrinho_total[index]==0:
         print("\nCarrinho vazio! Selecione alguns itens antes de gerar uma cobrança.")
         voltamenu()
-    print(f"\nValor total do carrinho: R$ {carrinho_total[index]:.2f}")
-    print("Formas de pagamento:\n1- Boleto Bancário\n2- Transferência\n3- À vista\n4- Cheque")
-    formapagamento = input("Digite o código da opção: ")
+    print(f"\nValor total da conta: R$ {carrinho_total[index]:.2f}\n")
+    print("FORMAS DE PAGAMENTO:\n1- Boleto Bancário\n2- Transferência\n3- À vista\n4- Cheque")
+    formapagamento = input("\nDigite o código da opção: ")
     if formapagamento == "1":
-
         voltamenu()
     elif formapagamento == "2":
         voltamenu()
@@ -262,7 +309,7 @@ def menu():
 
         print("""MENU:
 1 - Cadastro
-2 - Comprar
+2 - Comprar/remover produtos
 3 - Mostrar carrinho
 4 - Pagar conta
 5 - Consultar cliente
@@ -274,7 +321,7 @@ def menu():
             cadastro()
 
         elif opcao == "2":
-            print("\n** COMPRAR PRODUTOS **\n")
+            print("\n** MENU COMPRAS **\n")
             if login():
                 comprar(cpf)
 
@@ -309,12 +356,11 @@ def menu():
             print(carrinho_total)
 
         else:
-            print("Opção inválida! Tente novamente.")
+            print("\nOpção inválida! Tente novamente.")
             voltamenu()
 
 menu()
 
 ### FIXME MENU PAGAMENTO e Aperfeiçoamentos
-### TODO Novo menu p/ remover itens?
-### FIXME Compra negativa remove itens e desconta do carrinho, pode ficar negativo...
 ### modelo valida email https://www.devmedia.com.br/function-para-validar-email/16012
+### modelo valida CPF http://www.dbins.com.br/dica/como-funciona-a-logica-da-validacao-do-cpf
