@@ -9,8 +9,8 @@ cliente_limitecredito = []
 carrinho_total = []
 carrinho_itens = []
 ## Produtos
-produtos_nome = ['Pasta de dente', 'Arroz 5kg', 'Feijão 1kg', 'Açucar 1 kg', 'Refrigerante 2L', 'xsda', 'asdasd', 'asdaasdsd', 'aosjpd', 'asdaseqwe2', 'poaisjhd']
-produtos_preco = [5.00, 20.00, 5.00, 4.00, 6.00, 1.00, 1.00, 1.00, 1.00, 1.00, 1.00]
+produtos_nome = ['Pasta de dente', 'Arroz 5kg', 'Feijão 1kg', 'Açucar 1 kg', 'Refrigerante 2L', 'Energético 1L', 'asdasd', 'asdaasdsd', 'aosjpd', 'asdaseqwe2', 'poaisjhd']
+produtos_preco = [5.00, 20.00, 5.00, 4.00, 6.00, 8.00, 1.00, 1.00, 1.00, 1.00, 1.00]
 
 
 ## Retorna ao menu após pausa
@@ -84,10 +84,9 @@ def cadastro():
                 else:
                     break
             cliente_senha.append(criasenha)
-            print()
-            cliente_email.append(input("Digite o email: "))
+            cliente_email.append(input("\nDigite o email: "))
             cliente_limitecredito.append(1000.00)
-            carrinho_itens.append([0]*20)
+            carrinho_itens.append([0]*20) # inicia itens do carrinho para o cliente
             carrinho_total.append(0)
             index=cliente_cpf.index(cpf)
             print("\nCadastro efetuado!")
@@ -192,15 +191,12 @@ def comprar(cpf):
             comprar(cpf)
         except ValueError:
             print("Entrada inválida. Digite um número inteiro positivo.")
-    somavalor=produtos_preco[coditem]*quantia
-    if carrinho_total[index]+somavalor > cliente_limitecredito[index]:
-        print(f"\nNão foi possível adicionar este item ao seu carrinho.\nSeu limite é R$ {cliente_limitecredito[index]}0.")
+    if carrinho_total[index]+(produtos_preco[coditem]*quantia) > cliente_limitecredito[index]:
+        print(f"\nNão foi possível adicionar este item ao seu carrinho\npois estoura seu limite de R$ {cliente_limitecredito[index]}0.")
         comprar(cpf)
     else:
-        add=carrinho_itens[index][coditem]
-        carrinho_itens[index].pop(coditem)
-        carrinho_total[index]+=somavalor
-        carrinho_itens[index].insert(coditem, quantia+add)
+        carrinho_total[index]+=(produtos_preco[coditem]*quantia)
+        carrinho_itens[index][coditem]+=quantia
         volta = input(f"\n{quantia} un. de {produtos_nome[coditem]} adicionado ao carrinho!\n\nPressione ENTER para continuar.")
         comprar(cpf)
 
@@ -227,26 +223,24 @@ def removeitens(cpf):
         while True:
             try:
                 quantia = int(input("\nQuantos deseja remover: "))
-                if quantia >= carrinho_itens[index][coditem]:
-                    volta = input("\nValor maior que a quantia no carrinho.\nPressione ENTER para continuar.")
+                if quantia > carrinho_itens[index][coditem]:
+                    volta = input("\nQuantia maior do que a atual no carrinho.\n\nPressione ENTER para continuar.")
                     comprar(cpf)
                 if quantia <= 0:
-                    volta = input("\nNenhum item removido!\nPressione ENTER para continuar.")
+                    volta = input("\nNenhum item removido!\n\nPressione ENTER para continuar.")
                     comprar(cpf)
                 break
             except ValueError:
                 print("Entrada inválida. Digite um número inteiro positivo.")
-        n_no_carrinho=carrinho_itens[index][coditem]
-        carrinho_itens[index].pop(coditem)
         carrinho_total[index]-=(produtos_preco[coditem]*quantia)
-        carrinho_itens[index].insert(coditem, n_no_carrinho-quantia)
+        carrinho_itens[index][coditem]-=quantia
         volta = input(f"\n{quantia} un. de {produtos_nome[coditem]} removido do carrinho!\n\nPressione ENTER para voltar às compras.")
         comprar(cpf)
     else:
         volta = input("Carrinho Vazio!\n\nPressinone ENTER para voltar às compras.")
     comprar(cpf)
-                
 
+                
 # Prateleira de produtos
 def mostra_produtos(opcao):
     global cpf
@@ -279,6 +273,8 @@ def mostrar_carrinho(cpf, opcao):
 
 ## pagamento para liberar saldo
 def pagamento(cpf):
+    import time
+    global carrinho_itens
     global carrinho_total
     index=cliente_cpf.index(cpf)
     if carrinho_total[index]==0:
@@ -286,12 +282,18 @@ def pagamento(cpf):
         voltamenu()
     print(f"\nValor total da conta: R$ {carrinho_total[index]:.2f}\n")
     print("FORMAS DE PAGAMENTO:\n1- Boleto Bancário\n2- Transferência\n3- À vista\n4- Cheque")
-    formapagamento = input("\nDigite o código da opção: ")
+    formapagamento = input("\nComo deseja pagar: ")
     if formapagamento == "1":
         voltamenu()
     elif formapagamento == "2":
         voltamenu()
     elif formapagamento == "3":
+        print("\nAGUARDE um momento.")
+        time.sleep(5)
+        carrinho_itens[index].clear()
+        carrinho_itens[index]+=[0]*20
+        carrinho_total[index]=0
+        print("\nPagamento aceito! Você já pode retirar suas compras.")
         voltamenu()
     elif formapagamento == "4":
         voltamenu()
@@ -346,7 +348,6 @@ def menu():
             
         #REMOVER
         elif opcao == "42":
-            print(index)
             print(cliente_cpf)
             print(cliente_username)
             print(cliente_email)
