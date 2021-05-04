@@ -10,16 +10,16 @@ carrinho_total = []
 carrinho_itens = []
 ## Produtos
 produtos_nome = [
-    'Farinha de Trigo 5kg', 'Arroz 5kg', 'Feijão 1kg', 'Açucar 1 kg', 'Refrigerante 2L',
-    'Energético 1L', 'Biscoito Recheado 150g', 'Macarrão Instantâneo 90g', 'Sabonete 100g', 'Pasta de dente 90g',
-    'Papel Higiênico 4x30m', 'Pão Francês 100g', 'Óleo de Soja 900ml', 'Espaguete 500g', 'Leite Integral 1L',
-    'Biscoito Agua e Sal 370g', 'Sal 1kg', 'Café Solúvel 160g', 'Carne Bovina 1kg', 'Carne Suína 1kg'
+    'Farinha de Trigo 5kg', 'Arroz 5kg', 'Feijão 1kg', 'Açucar 1 kg', 'Sal 1kg',
+    'Espaguete 500g', 'Biscoito Agua e Sal 370g', 'Biscoito Recheado 150g', 'Macarrão Instantâneo 90g', 'Pão Francês 100g',
+    'Carne Bovina 1kg', 'Carne Suína 1kg', 'Leite Integral 1L', 'Óleo de Soja 900ml', 'Café Solúvel 160g',
+    'Água Mineral 1.5L', 'Refrigerante 2L', 'Papel Higiênico 4x30m', 'Sabonete 100g', 'Pasta de dente 90g',
     ]
 produtos_preco = [
-    17.99, 19.50, 4.69, 4.49, 6.90,
-    8.00, 1.99, 1.75, 2.65, 4.89,
-    5.59, 1.50, 8.49, 4.69, 3.79,
-    4.99, 2.29, 12.90, 32.90, 12.99
+    17.99, 19.50, 4.69, 4.49, 2.29,
+    4.69, 4.99, 1.99, 1.75, 1.50,
+    32.90, 12.99, 3.79, 4.69, 12.90,
+    4.00, 6.90, 5.59, 2.65, 4.89
     ]
 
 
@@ -179,13 +179,13 @@ def comprar(cpf):
         while True:
             try:
                 coditem = int(input("\nCódigo do item: "))
-                if coditem > len(produtos_nome)-1 or coditem < 0:
+                if coditem > len(produtos_nome) or coditem < 1:
                     print("Item inexistente.")
                     continue
                 break
             except ValueError:
                 print("Entrada inválida. Digite o código do produto.")
-        print(f"{produtos_nome[coditem]} -- R$ {produtos_preco[coditem]:.2f}")
+        print(f"{produtos_nome[coditem-1]} -- R$ {produtos_preco[coditem-1]:.2f}")
         while True:
             try:
                 quantia = int(input("\nQuantidade: "))
@@ -196,14 +196,14 @@ def comprar(cpf):
             continua = input("Nenhum item adicionado!\n\nPressione ENTER para continuar.")
             continue
         else:
-            if carrinho_total[index]+(produtos_preco[coditem]*quantia) > cliente_limitecredito[index]:
+            if carrinho_total[index]+(produtos_preco[coditem-1]*quantia) > cliente_limitecredito[index]:
                 print(f"\nNão foi possível adicionar este item ao seu carrinho\npois estoura seu limite de R$ {cliente_limitecredito[index]:.2f}")
                 continua = input("\nFaça o pagamento das compras para comprar mais!\n\nPressione ENTER para continuar.")
                 continue
             else:
-                carrinho_total[index]+=(produtos_preco[coditem]*quantia)
-                carrinho_itens[index][coditem]+=quantia
-                print(f"\n{quantia} un. de {produtos_nome[coditem]} adicionado ao carrinho!\n\nTOTAL do Carrinho: R$ {carrinho_total[index]:.2f}")
+                carrinho_total[index]+=(produtos_preco[coditem-1]*quantia)
+                carrinho_itens[index][coditem-1]+=quantia
+                print(f"\n{quantia} un. de {produtos_nome[coditem-1]} adicionado ao carrinho!\n\nTOTAL do Carrinho: R$ {carrinho_total[index]:.2f}")
                 continua = input("\nPressione ENTER para continuar.")
                 continue
     return
@@ -218,15 +218,15 @@ def removeitens(cpf):
     if carrinho_total[index] > 0:
         for codigo in range(len(produtos_nome)):
             if carrinho_itens[index][codigo]>0:
-                print(f"({codigo}) {produtos_nome[codigo]} -- {carrinho_itens[index][codigo]} un. ")
+                print(f"({codigo+1}) {produtos_nome[codigo]} -- {carrinho_itens[index][codigo]} un. ")
         while True:
             try:
                 coditem = int(input("\nCódigo do produto: "))
                 break
             except ValueError:
                 print("Entrada inválida. Digite o código do produto.")
-        if carrinho_itens[index][coditem]<1:
-            volta = input("\nProduto não está no carrinho.\nPressione ENTER para voltar às compras.")
+        if carrinho_itens[index][coditem-1]<1:
+            volta = input("\nProduto não está no carrinho.\n\nPressione ENTER para voltar às compras.")
             return
         while True:
             try:
@@ -237,13 +237,13 @@ def removeitens(cpf):
         if quantia <= 0:
             volta = input("\nNenhum item removido!\n\nPressione ENTER para voltar às compras.")
             return
-        elif quantia > carrinho_itens[index][coditem]:
+        elif quantia > carrinho_itens[index][coditem-1]:
             volta = input("\nQuantia maior do que a atual no carrinho.\n\nPressione ENTER para voltar às compras.")
             return
         else:
-            carrinho_total[index]-=(produtos_preco[coditem]*quantia)
-            carrinho_itens[index][coditem]-=quantia
-            volta = input(f"\n{quantia} un. de {produtos_nome[coditem]} removido do carrinho!\n\nPressione ENTER para voltar às compras.")
+            carrinho_total[index]-=(produtos_preco[coditem-1]*quantia)
+            carrinho_itens[index][coditem-1]-=quantia
+            volta = input(f"\n{quantia} un. de {produtos_nome[coditem-1]} removido do carrinho!\n\nPressione ENTER para voltar às compras.")
             return
     else:
         volta = input("Carrinho Vazio!\n\nPressinone ENTER para voltar às compras.")
@@ -258,7 +258,7 @@ def mostra_produtos():
     print("(CÓDIGO)     DESCRIÇÃO           PREÇO")
     print("========================================")
     for n in range(len(produtos_nome)):
-        print((f"({n})").rjust(4), (produtos_nome[n]).center(25),f" R$ {produtos_preco[n]:.2f}")
+        print((f"({n+1})").rjust(4), (produtos_nome[n]).center(25),f" R$ {produtos_preco[n]:.2f}")
     print("========================================")
     volta = input("\nPressione ENTER para continuar.")
     return
