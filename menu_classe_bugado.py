@@ -1,13 +1,14 @@
-## Cliente
-cliente_username = []
-cliente_cpf = []
-cliente_senha = []
-cliente_email = []
-cliente_limitecredito = []
+## Inicia classe e variáveis cliente
+class Clientes:
+    nome = ''
+    senha = ''
+    email = ''
+    limite = 1000
+    total = 0
+    itens = [0]*20
 
-## Carrinho
-carrinho_total = []
-carrinho_itens = []
+cliente_cpf = []
+cliente = []
 
 ## Produtos
 produtos_nome = [
@@ -25,15 +26,12 @@ produtos_preco = [
 
 ## Validar o CPF:
 def validacpf(cpfstr):
-    # Verifica se CPF digitado é somente números, tem 11 digitos ou tem todos números iguais
     if not cpfstr.isdecimal() or len(cpfstr) != 11 or cpfstr == cpfstr[::-1]:
-        return False
+        return False # verifica se CPF digitado é somente números, tem 11 digitos ou tem todos números iguais
     cpf = [int(x) for x in cpfstr]
     verificador = []
     for n in range(9, 11):
-        # Acumula multiplicacao dos digitos
-        multipl = sum((cpf[digit] * (n+1 - digit) for digit in range(0, n)))
-        # Confere os digitos verificadores
+        multipl = sum((cpf[digit] * (n+1 - digit) for digit in range(0, n))) # acumula multiplicacao dos digitos
         if (multipl%11) < 2:
             verificador.append(True) if cpf[n] == 0 else verificador.append(False)
         else:
@@ -48,12 +46,10 @@ def login():
         print("Informe o seu LOGIN")
         cpf = input("CPF: ")
         if validacpf(cpf):
-            # Verifica se o CPF já está cadastrado
-            if cpf in cliente_cpf:
+            if cpf in cliente_cpf: # verifica se o CPF já está cadastrado
                 index = cliente_cpf.index(cpf)
                 senha = input("Senha: ")
-                # Verifica se a senha digitada confere no cadastro
-                if senha == cliente_senha[index]:
+                if senha == cliente[index].senha: # verifica se a senha digitada confere no cadastro
                     return index
                 else:
                     menu = input("\nSenha incorreta.\n\nPressione ENTER para continuar.")
@@ -76,23 +72,21 @@ def cadastro():
     cpf = input("\nDigite o CPF (somente números)\nou pressione ENTER para voltar ao MENU: ")
     if cpf == "":
         return
-    # Verifica se o CPF é válido para iniciar o cadastro
-    if validacpf(cpf): 
+    if validacpf(cpf): # verifica se o CPF é válido para iniciar o cadastro
         if not cpf in cliente_cpf:
             cliente_cpf.append(cpf)
-            # Verifica entrada de nome válido (não vazio e somente a-z)
-            while True: 
+            cadastro = Clientes()
+            while True: # verifica entrada de nome válido (não vazio e somente a-z)
                 print()
                 nome = input("Digite o nome do usuário: ")
                 if len(nome) < 1:
                     print("ERRO: Digite pelo menos um caractere.")
-                elif not nome.replace(' ','').isalpha():
+                elif not nome.replace(' ','').isalpha(): # verifica se somente letras foram digitadas
                     print("ERRO: Somente letras de a-z são permitidas.")
                 else:
                     break
-            cliente_username.append(nome)
-            # Verifica entrada de senha válida (total 6 caracteres e confere senha)
-            while True: 
+            cadastro.nome = nome
+            while True: # verifica entrada de senha válida (total 6 caracteres e confirma senha)
                 print()
                 while True:
                     criasenha = input("Criar uma senha (6 caracteres): ")
@@ -105,17 +99,14 @@ def cadastro():
                     print("As senhas digitadas são diferentes.")
                 else:
                     break
-            cliente_senha.append(criasenha)
-            cliente_email.append(input("\nDigite o email: "))
-            # Inicia carrinho do cliente
-            cliente_limitecredito.append(1000.00)
-            carrinho_itens.append([0]*20)
-            carrinho_total.append(0)
+            cadastro.senha = criasenha
+            cadastro.email = input("\nDigite o email: ")
+            cliente.append(cadastro)
             menu = input("\nCadastro efetuado!\n\nPressione ENTER para continuar.")
             return
         else:
             index = cliente_cpf.index(cpf)
-            menu = input(f"\nCliente já cadastrado com o nome: {cliente_username[index]}\n\nPressione ENTER para continuar.")
+            menu = input(f"\nCliente já cadastrado com o nome: {cliente[index].nome}\n\nPressione ENTER para continuar.")
             return
     else:
         menu = input("\nCPF Inválido.\n\nPressione ENTER para continuar.")
@@ -125,7 +116,7 @@ def cadastro():
 def comprar():
     print("\n** MENU COMPRAS **\n")
     index = login()
-    if index != 'ERRO':
+    if index != 'ERRO': # avança se o login não retornar 'ERRO'
         while True:
             print("\n(1) Comprar itens\n(2) Remover itens\n(3) Ver o carrinho\n(4) Listar produtos\n(5) Voltar")
             buyoption = input("\nOPÇÃO: ")
@@ -143,8 +134,7 @@ def comprar():
             elif buyoption != '1':
                 continua = input("\nOpção inválida!\n\nPressione ENTER para continuar.")
                 continue
-            # Verifica se o código digitado é válido
-            while True:
+            while True: # verifica se o código digitado é válido
                 try:
                     coditem = int(input("\nCódigo do item: "))
                     if coditem > len(produtos_nome) or coditem < 1:
@@ -154,8 +144,7 @@ def comprar():
                 except ValueError:
                     print("Entrada inválida. Digite o código do produto.")
             print(f"{produtos_nome[coditem-1]} -- R$ {produtos_preco[coditem-1]:.2f}")
-            # Verifica se a quantidade a adicionar é válida
-            while True:
+            while True: # verifica se a quantidade a adicionar é válida
                 try:
                     quantia_add = int(input("\nQuantidade: "))
                     break
@@ -164,36 +153,32 @@ def comprar():
             if quantia_add < 1:
                 continua = input("Nenhum item adicionado!\n\nPressione ENTER para continuar.")
                 continue
-            else:
-                if carrinho_total[index] + (produtos_preco[coditem-1]*quantia_add) > cliente_limitecredito[index]: # verifica limite
-                    print(f"\nNão foi possível adicionar este item ao seu carrinho\npois estoura seu limite de R$ {cliente_limitecredito[index]:.2f}")
-                    print(f"\nO valor atual do seu carrinho é R$ {carrinho_total[index]:.2f}")
-                    continua = input("Faça o pagamento das compras para liberar seu saldo!\n\nPressione ENTER para continuar.")
-                    continue
-                else:
-                    # Adiciona os itens ao carrinho e atualiza o valor total
-                    carrinho_total[index] += (produtos_preco[coditem-1]*quantia_add)
-                    carrinho_itens[index][coditem-1] += quantia_add
-                    print(f"\n{quantia_add} un. de {produtos_nome[coditem-1]} adicionado ao carrinho!\n\nTOTAL do Carrinho: R$ {carrinho_total[index]:.2f}")
-                    continua = input("\nPressione ENTER para continuar.")
-                    continue
+            elif cliente[index].total + (produtos_preco[coditem-1]*quantia_add) > cliente[index].limite: # verifica limite
+                print(f"\nNão foi possível adicionar este item ao seu carrinho\npois estoura seu limite de R$ {cliente[index].limite:.2f}")
+                continua = input("\nFaça o pagamento das compras para comprar mais!\n\nPressione ENTER para continuar.")
+                continue
+            else: # adiciona os itens ao carrinho e atualiza o valor total
+                cliente[index].total += (produtos_preco[coditem-1]*quantia_add)
+                cliente[index].itens[coditem-1] += (quantia_add)
+                print(f"\n{quantia_add} un. de {produtos_nome[coditem-1]} adicionado ao carrinho!\n\nTOTAL do Carrinho: R$ {cliente[index].total:.2f}")
+                continua = input("\nPressione ENTER para continuar.")
+                continue
     return
 
 # Remover itens do carrinho
 def removeitens(index):
     print("\n** REMOVER ITENS **\n")
-    if carrinho_total[index] > 0:
+    if cliente[index].total > 0: # printa a lista de produtos presentes no carrinho
         for codigo in range(len(produtos_nome)):
-            # Printa a lista de produtos que tem quantia maior que zero no carrinho
-            if carrinho_itens[index][codigo] > 0:
-                print(f"({codigo+1}) {produtos_nome[codigo]} -- {carrinho_itens[index][codigo]} un. ")
+            if cliente[index].itens[codigo] > 0:
+                print(f"({codigo+1}) {produtos_nome[codigo]} -- {cliente[index].itens[codigo]} un. ")
         while True:
             try:
                 coditem = int(input("\nCódigo do produto: "))
                 break
             except ValueError:
                 print("Entrada inválida. Digite o código do produto.")
-        if carrinho_itens[index][coditem-1] < 1:
+        if cliente[index].itens[coditem-1] < 1:
             volta = input("\nProduto não está no carrinho.\n\nPressione ENTER para voltar às compras.")
             return
         while True:
@@ -205,13 +190,12 @@ def removeitens(index):
         if quantia_remov < 1:
             volta = input("\nNenhum item removido!\n\nPressione ENTER para voltar às compras.")
             return
-        elif quantia_remov > carrinho_itens[index][coditem-1]:
+        elif quantia_remov > cliente[index].itens[coditem-1]:
             volta = input("\nQuantia maior do que a atual no carrinho.\n\nPressione ENTER para voltar às compras.")
             return
-        else:
-            # Remove itens e atualiza valor total do carrinho
-            carrinho_total[index] -= (produtos_preco[coditem-1]*quantia_remov)
-            carrinho_itens[index][coditem-1] -= quantia_remov
+        else: # remove itens e atualiza valor total do carrinho
+            cliente[index].total -= (produtos_preco[coditem-1]*quantia_remov)
+            cliente[index].itens[coditem-1] -= quantia_remov
             volta = input(f"\n{quantia_remov} un. de {produtos_nome[coditem-1]} removido do carrinho!\n\nPressione ENTER para voltar às compras.")
             return
     else:
@@ -233,15 +217,14 @@ def mostra_produtos():
 # Mostra o carrinho de compras do cliente
 def mostrar_carrinho(index):
     print("\n****** CARRINHO ******\n")
-    if carrinho_total[index] > 0:
-        print(f"Carrinho de {cliente_username[index]}:")
+    if cliente[index].total > 0: # avança se o carrinho não estiver vazio
+        print(f"Carrinho de {cliente[index].nome}:")
         print("______________________")
         for codigo in range(len(produtos_nome)):
-            # Mostra somente itens com quantia maior que ZERO no carrinho
-            if carrinho_itens[index][codigo] > 0:
-                print(f"{carrinho_itens[index][codigo]} un. de {produtos_nome[codigo]}.")
+            if cliente[index].itens[codigo] > 0: # mostra somente itens com quantia maior que ZERO no carrinho
+                print(f"{cliente[index].itens[codigo]} un. de {produtos_nome[codigo]}.")
         print("______________________")
-        print(f"TOTAL: R$ {carrinho_total[index]:.2f}")
+        print(f"TOTAL: R$ {cliente[index].total:.2f}")
     else:
         print("Carrinho Vazio!")
     volta = input("\nPressione ENTER para continuar.")
@@ -250,12 +233,12 @@ def mostrar_carrinho(index):
 ## Mostra um cliente a partir do CPF
 def consulta_cliente():
     print("\n** CONSULTA CLIENTE **")
-    if cliente_cpf:
+    if cliente_cpf: # avança somente se existir cliente cadastrado
         cpf = input("\nDigite o CPF do cliente: ")
         if validacpf(cpf):
             if cpf in cliente_cpf:
                 index = cliente_cpf.index(cpf)
-                menu = input(f"Nome: {cliente_username[index]}\nEmail: {cliente_email[index]}\n\nPressione ENTER para continuar.")
+                menu = input(f"Nome: {cliente[index].nome}\nEmail: {cliente[index].email}\n\nPressione ENTER para continuar.")
                 return
             else:
                 menu = input("\nCliente não encontrado.\n\nPressione ENTER para continuar.")
@@ -271,29 +254,29 @@ def consulta_cliente():
 def pagamento():
     print("\n** PAGAMENTO **\n")
     index = login()
-    if index != 'ERRO':
+    if index != 'ERRO': # avança se o login não retornar 'ERRO'
         while True:
             import time
-            if carrinho_total[index] == 0:
+            if cliente[index].total == 0:
                 menu = input("\nCarrinho vazio! Selecione alguns itens antes de gerar uma cobrança.\n\nPressione ENTER para continuar.")
                 return
-            print(f"\nValor total da conta: R$ {carrinho_total[index]:.2f}\n")
+            print(f"\nValor total da conta: R$ {cliente[index].total:.2f}\n")
             print("OPÇÕES:\n1- Pagamento à vista\n2- Pagamento por transferência\n3- Voltar ao MENU")
-            formapagamento = input("\nComo deseja pagar: ")
+            formapagamento = input("\nComo deseja pagar: ") # "aceita" o pagamento e zera o carrinho
             if formapagamento == "1": 
                 print("\nDevolvendo o troco... Aguarde.")
-                time.sleep(3) # "Simula" processamento da operação
-                carrinho_itens[index].clear()
-                carrinho_itens[index] += [0]*20
-                carrinho_total[index] = 0
+                time.sleep(3)
+                cliente[index].itens.clear()
+                cliente[index].itens += [0]*20
+                cliente[index].total = 0
                 menu = input("\nPagamento aceito! Você já pode retirar suas compras.\n\nPressione ENTER para continuar.")
                 return
             elif formapagamento == "2":
                 print("\nConfirmando recebimento da transferência... Aguarde.")
-                time.sleep(3) # "Simula" processamento da operação
-                carrinho_itens[index].clear()
-                carrinho_itens[index] += [0]*20
-                carrinho_total[index] = 0
+                time.sleep(5)
+                cliente[index].itens.clear()
+                cliente[index].itens += [0]*20
+                cliente[index].total = 0
                 menu = input("\nPagamento confirmado! Você já pode retirar suas compras.\n\nPressione ENTER para continuar.")
                 return
             elif formapagamento == "3":
@@ -324,8 +307,7 @@ def menu():
 
         elif opcao == "3":
             print("\n** MOSTRAR CARRINHO **\n")
-            # Login externo para permitir acessar diretamente do menu compra.
-            index = login()
+            index = login() # login externo pra permitir acessar diretamente do menu compra.
             if index != 'ERRO':
                 mostrar_carrinho(index)
 
@@ -340,6 +322,15 @@ def menu():
 
         elif opcao == "0":
             print("Saindo!")
+
+        elif opcao == "42":
+            for i in cliente:
+                print(i.nome)
+                print(i.senha)
+                print(i.email)
+                print(i.itens)
+                print(i.total)
+                print(i.limite)
 
         else:
             continua = input("\nOpção inválida!\n\nPressione ENTER para continuar.")
